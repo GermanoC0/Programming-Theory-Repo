@@ -14,19 +14,6 @@ public class GameManager : MonoBehaviour
     private bool isGameOver;
     private bool isWon;
 
-    private void Awake()
-    {
-        /*
-        warrior.gameObject.tag = "Enemy";
-        warrior.GetComponent<Renderer>().material.color = Color.red;
-        warrior.transform.rotation = Quaternion.Euler(0, -180, 0);
-
-        wizard.gameObject.tag = "Player";
-        wizard.GetComponent<Renderer>().material.color = Color.blue;
-
-        ranger.gameObject.tag = "Player";
-        ranger.GetComponent<Renderer>().material.color = Color.yellow;*/
-    }
 
     // Start is called before the first frame update
     void Start()
@@ -34,6 +21,7 @@ public class GameManager : MonoBehaviour
         isGameOver = false;
         isWon = false;
 
+        // Dictionary with the possible units
         playerUnits = new Dictionary<string, Unit>();
         playerUnits.Add("Warrior", warrior);
         playerUnits.Add( "Ranger", ranger );
@@ -47,9 +35,11 @@ public class GameManager : MonoBehaviour
     {
         isGameOver = Flag.gameOver;
         isWon = Flag.won;
-
     }
 
+    /// <summary>
+    /// If the game is not finished and no winner, random enemies spawn
+    /// </summary>
     private void EnemySpawner()
     {
         if ( !isGameOver && !isWon )
@@ -57,6 +47,8 @@ public class GameManager : MonoBehaviour
             int randomIndex = Random.Range(0, units.Length);
 
             Unit enemy = Instantiate(units[randomIndex], new Vector3(0,1,8), units[randomIndex].transform.rotation);
+
+            // Adjust unit and it's healthbar rotation
             enemy.transform.rotation = Quaternion.Euler( 0, -180, 0 );
             enemy.GetComponentInChildren<Canvas>().transform.rotation = Quaternion.Euler( 0, 0, 0 );
 
@@ -65,35 +57,40 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            CancelInvoke();
+            // Stop spawning enemies if the game is ended
+            CancelInvoke( "EnemySpawner" );
         }
-            //int numEnemiesInGame = GameObject.FindGameObjectsWithTag("Enemy").Length;
-            //if (numEnemiesInGame == 0)
-            //{
-            
-        //}
     }
 
+    /// <summary>
+    /// Spawn Player Warrior unit when the Warrior button has pressed
+    /// </summary>
     public void PlayerWarriorSpawn()
     {
         Unit warrior = Instantiate(playerUnits["Warrior"], new Vector3(0,1,-9), playerUnits["Warrior"].transform.rotation);
-        warrior.GetComponentInChildren<Canvas>().transform.rotation = Quaternion.Euler( 0, 0, 0 );
+        
         warrior.gameObject.tag = "Player";
         warrior.GetComponent<Renderer>().material.color = Color.blue;
     }
 
+    /// <summary>
+    /// Spawn Player Ranger unit when the Ranger button has pressed
+    /// </summary>
     public void PlayerRangerSpawn()
     {
         Unit ranger = Instantiate(playerUnits["Ranger"], new Vector3(0,1,-9), playerUnits["Ranger"].transform.rotation);
-        //ranger.GetComponentInChildren<Canvas>().transform.rotation = Quaternion.Euler( 0, -180, 0 );
+        
         ranger.gameObject.tag = "Player";
         ranger.GetComponent<Renderer>().material.color = Color.blue;
     }
 
+    /// <summary>
+    /// Spawn Player Wizard unit when the Wizard button has pressed
+    /// </summary>
     public void PlayerWizardSpawn()
     {
         Unit wizard = Instantiate(playerUnits["Wizard"], new Vector3(0,1,-9), playerUnits["Wizard"].transform.rotation);
-        //wizard.GetComponentInChildren<Canvas>().transform.rotation = Quaternion.Euler( 0, -180, 0 );
+        
         wizard.gameObject.tag = "Player";
         wizard.GetComponent<Renderer>().material.color = Color.blue;
     }

@@ -1,82 +1,60 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class Ranger : Unit
+public class Ranger : Unit // INHERITANCE from Unit
 {
-    public Slider healthBar;
     [SerializeField]
     private GameObject arrow;
     [SerializeField]
     private GameObject projectileSpawnPoint;
 
+    private float projectileSpeed;
+
     Ranger()
     {
+        // Set Ranger attributes
         health = 35;
         speed = 4;
         damage = 18;
         checkRange = 6;
         attackRange = 5;
+        attackSpeed = 3f;
+        projectileSpeed = 4f;
 
-        /*
-        if ( flagA != null )
-            Debug.Log( "FlagA not NULL" );
-        else
-            Debug.Log( "FlagA is NULL" );*/
     }
 
-    protected override void Yell()
+
+    protected override void Hit() // POLYMORPHISM
     {
-        Debug.Log( "I'm a Ranger!" );
-        attackRange = Random.Range( attackRange - 1.5f, attackRange );
-        healthBar = ( gameObject.GetComponentInChildren<Canvas>() ).GetComponentInChildren<Slider>();
-        healthBar.maxValue = health;
-    }
-
-    protected override void MoveTowardFlag()
-    {
-        //Debug.Log( "Ranger Speed: " + speed );
-        base.MoveTowardFlag();
-    }
-
-    protected override void MoveTowardEnemy()
-    {
-        //Debug.Log( "Warrior Speed: " + speed );
-        base.MoveTowardEnemy();
-    }
-
-    protected override void Hit()
-    {
-        //
-        StartCoroutine( HitDamage() );
+        StartCoroutine( HitDamage() ); // Specific Attack for Ranger Class
     }
 
 
+    /// <summary>
+    /// Attack mode spedific for units to the nearest enemy unit. When the enemy unit health < 1the unit will be destroyed
+    /// </summary>
+    /// <returns></returns>
     IEnumerator HitDamage()
     {
         if ( nearestEnemy != null)
         {
-            Debug.Log( "Nearest " + nearestEnemy.GetComponent<Unit>().tag + " " + nearestEnemy.GetComponent<Unit>().name + " with health " + nearestEnemy.GetComponent<Unit>().health );
+            //Debug.Log( "Nearest " + nearestEnemy.GetComponent<Unit>().tag + " " + nearestEnemy.GetComponent<Unit>().name + " with health " + nearestEnemy.GetComponent<Unit>().health );
 
             while ( nearestEnemy.GetComponent<Unit>().health > 1 )
             {
                 if ( nearestEnemy != null )
                 {
-                    ThrowArrow();
-                    if ( nearestEnemy.GetComponent<Unit>() is Warrior )
-                        nearestEnemy.GetComponent<Warrior>().healthBar.value -= damage;
-                    else if ( nearestEnemy.GetComponent<Unit>() is Wizard )
-                        nearestEnemy.GetComponent<Wizard>().healthBar.value -= damage;
-                    else if ( nearestEnemy.GetComponent<Unit>() is Ranger )
-                        nearestEnemy.GetComponent<Ranger>().healthBar.value -= damage;
-                    //healthBar.value -= damage;
-                    nearestEnemy.GetComponent<Unit>().health -= damage;
+                    // Ranger ability
+                    ThrowArrow(); //ABSTRACTION
+
+                    // Update nearestEnemy Health bar and health
+                    UpdateEnemyHealthStatus(); //ABSTRACTION
                 }
                 else
                     break;
 
-                yield return new WaitForSeconds( 3f );
+                yield return new WaitForSeconds( attackSpeed );
 
             }
             if ( nearestEnemy != null )
@@ -89,13 +67,34 @@ public class Ranger : Unit
         
     }
 
-    private void ThrowArrow()
+    /// <summary>
+    /// Instantiate and throw the arrow
+    /// </summary>
+    private void ThrowArrow() //ABSTRACTION
     {
         GameObject arrowRef = Instantiate(arrow, projectileSpawnPoint.transform.position, projectileSpawnPoint.transform.rotation);
-        //arrowRef.transform.rotation = Quaternion.Euler(90, projectileSpawnPoint.transform.rotation.y, 0);
-        arrowRef.GetComponent<Rigidbody>().AddForce( arrowRef.transform.forward * 4f, ForceMode.Impulse );
+        arrowRef.GetComponent<Rigidbody>().AddForce( arrowRef.transform.forward * projectileSpeed, ForceMode.Impulse );
     }
 
+    /// <summary>
+    /// Update nearestEnemy Health bar and health
+    /// </summary>
+    private void UpdateEnemyHealthStatus() //ABSTRACTION
+    {
+        if ( nearestEnemy.GetComponent<Unit>() is Warrior )
+            nearestEnemy.GetComponent<Warrior>().healthBar.value -= damage;
+        else if ( nearestEnemy.GetComponent<Unit>() is Wizard )
+            nearestEnemy.GetComponent<Wizard>().healthBar.value -= damage;
+        else if ( nearestEnemy.GetComponent<Unit>() is Ranger )
+            nearestEnemy.GetComponent<Ranger>().healthBar.value -= damage;
+
+        nearestEnemy.GetComponent<Unit>().health -= damage;
+    }
+
+    /// <summary>
+    /// Destroy the projectile that collide with the unit
+    /// </summary>
+    /// <param name="other"></param>
     private void OnTriggerEnter( Collider other )
     {
         if ( other.CompareTag( "Projectile" ) )

@@ -28,12 +28,15 @@ public class MainGUIManager : MonoBehaviour
     void Start()
     {
         gameManagerRef = GameObject.Find( "GameManager" ).GetComponent<GameManager>();
+
+        // Player spawning units delay
         nextTurn = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
+        // GameOver or Win Messages manager
         if (Flag.gameOver)
         {
             gameOverText.gameObject.SetActive(true);
@@ -44,6 +47,9 @@ public class MainGUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Warrior button controller (you can spawn a warrior every 4 seconds)
+    /// </summary>
     public void PlayerUnitWarriorSpawner()
     {
         if ( Time.time > nextTurn  && !Flag.won && !Flag.gameOver )
@@ -54,6 +60,9 @@ public class MainGUIManager : MonoBehaviour
             
     }
 
+    /// <summary>
+    /// Ranger button controller (you can spawn a ranger every 4 seconds)
+    /// </summary>
     public void PlayerUnitRangerSpawner()
     {
         if ( Time.time > nextTurn && !Flag.won && !Flag.gameOver )
@@ -64,6 +73,9 @@ public class MainGUIManager : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// Wizard button controller (you can spawn a wizard every 4 seconds)
+    /// </summary>
     public void PlayerUnitWizardSpawner()
     {
         if ( Time.time > nextTurn && !Flag.won && !Flag.gameOver )

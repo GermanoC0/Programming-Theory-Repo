@@ -1,82 +1,58 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class Wizard : Unit
+public class Wizard : Unit // INHERITANCE from Unit
 {
-    public Slider healthBar;
     [SerializeField]
     private GameObject fireball;
     [SerializeField]
     private GameObject projectileSpawnPoint;
 
+    private float projectileSpeed;
+
     Wizard()
     {
+        // Set Wizard attributes
         health = 20;
         speed = 3;
         damage = 12;
         checkRange = 5;
         attackRange = 4;
-
-        /*
-        if ( flagA != null )
-            Debug.Log( "FlagA not NULL" );
-        else
-            Debug.Log( "FlagA is NULL" );*/
+        attackSpeed = 5f;
+        projectileSpeed = 3f;
     }
 
-    protected override void Yell()
+    protected override void Hit() // POLYMORPHISM
     {
-        Debug.Log( "I'm a Wizard!" );
-        attackRange = Random.Range( attackRange - 1.5f, attackRange );
-        healthBar = ( gameObject.GetComponentInChildren<Canvas>() ).GetComponentInChildren<Slider>();
-        healthBar.maxValue = health;
-    }
-
-    protected override void MoveTowardFlag()
-    {
-        //Debug.Log( "Wizard Speed: " + speed );
-        base.MoveTowardFlag();
-    }
-
-    protected override void MoveTowardEnemy()
-    {
-        //Debug.Log( "Warrior Speed: " + speed );
-        base.MoveTowardEnemy();
-    }
-
-    protected override void Hit()
-    {
-        //
-        StartCoroutine( HitDamage() );
+        StartCoroutine( HitDamage() );  // Specific Attack for Wizard Class
     }
 
 
+    /// <summary>
+    /// Attack mode spedific for units to the nearest enemy unit. When the enemy unit health < 1the unit will be destroyed
+    /// </summary>
+    /// <returns></returns>
     IEnumerator HitDamage()
     {
         if ( nearestEnemy != null )
         {
-            Debug.Log( "Nearest " + nearestEnemy.GetComponent<Unit>().tag + " " + nearestEnemy.GetComponent<Unit>().name + " with health " + nearestEnemy.GetComponent<Unit>().health );
+            //Debug.Log( "Nearest " + nearestEnemy.GetComponent<Unit>().tag + " " + nearestEnemy.GetComponent<Unit>().name + " with health " + nearestEnemy.GetComponent<Unit>().health );
 
             while ( nearestEnemy.GetComponent<Unit>().health > 1 )
             {
                 if ( nearestEnemy != null )
                 {
-                    CastFireball();
-                    if ( nearestEnemy.GetComponent<Unit>() is Warrior )
-                        nearestEnemy.GetComponent<Warrior>().healthBar.value -= damage;
-                    else if ( nearestEnemy.GetComponent<Unit>() is Wizard )
-                        nearestEnemy.GetComponent<Wizard>().healthBar.value -= damage;
-                    else if ( nearestEnemy.GetComponent<Unit>() is Ranger )
-                        nearestEnemy.GetComponent<Ranger>().healthBar.value -= damage;
-                    //healthBar.value -= damage;
-                    nearestEnemy.GetComponent<Unit>().health -= damage;
+                    // Ranger ability
+                    CastFireball(); //ABSTRACTION
+
+                    // Update nearestEnemy Health bar and health
+                    UpdateEnemyHealthStatus(); //ABSTRACTION
                 }  
                 else
                     break;
 
-                yield return new WaitForSeconds( 5f );
+                yield return new WaitForSeconds( attackSpeed );
 
             }
             if ( nearestEnemy != null )
@@ -88,12 +64,34 @@ public class Wizard : Unit
         
     }
 
-    private void CastFireball()
+    /// <summary>
+    /// Instantiate and throw the fireball
+    /// </summary>
+    private void CastFireball() //ABSTRACTION
     {
         GameObject fireballRef = Instantiate(fireball, projectileSpawnPoint.transform.position, projectileSpawnPoint.transform.rotation);
-        fireballRef.GetComponent<Rigidbody>().AddForce( projectileSpawnPoint.transform.forward * 3f, ForceMode.Impulse);
+        fireballRef.GetComponent<Rigidbody>().AddForce( projectileSpawnPoint.transform.forward * projectileSpeed, ForceMode.Impulse);
     }
 
+    /// <summary>
+    /// Update nearestEnemy Health bar and health
+    /// </summary>
+    private void UpdateEnemyHealthStatus() //ABSTRACTION
+    {
+        if ( nearestEnemy.GetComponent<Unit>() is Warrior )
+            nearestEnemy.GetComponent<Warrior>().healthBar.value -= damage;
+        else if ( nearestEnemy.GetComponent<Unit>() is Wizard )
+            nearestEnemy.GetComponent<Wizard>().healthBar.value -= damage;
+        else if ( nearestEnemy.GetComponent<Unit>() is Ranger )
+            nearestEnemy.GetComponent<Ranger>().healthBar.value -= damage;
+
+        nearestEnemy.GetComponent<Unit>().health -= damage;
+    }
+
+    /// <summary>
+    /// Destroy the projectile that collide with the unit
+    /// </summary>
+    /// <param name="other"></param>
     private void OnTriggerEnter( Collider other )
     {
         if (other.CompareTag("Projectile"))

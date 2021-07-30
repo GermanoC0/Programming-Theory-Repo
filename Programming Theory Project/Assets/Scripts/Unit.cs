@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class Unit : MonoBehaviour
@@ -8,6 +9,7 @@ public class Unit : MonoBehaviour
     protected int damage;
     protected float checkRange;
     protected float attackRange;
+    protected float attackSpeed;
 
     protected GameObject flagA;
     protected GameObject flagB;
@@ -18,43 +20,39 @@ public class Unit : MonoBehaviour
 
     private bool flag = true;
 
-    
+    public Slider healthBar;
+
 
     private void Awake()
     {
         flagA = GameObject.Find( "FlagA" );
-        flagB = GameObject.Find( "FlagB" );
-
-        /*
-        if ( flagA != null )
-            Debug.Log( "FlagA not NULL" );
-        else
-            Debug.Log( "FlagA is NULL" );*/
-
-        
+        flagB = GameObject.Find( "FlagB" );        
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        Yell();
-    }
+        healthBar = ( gameObject.GetComponentInChildren<Canvas>() ).GetComponentInChildren<Slider>();
 
-    protected virtual void Yell()
-    {
-        Debug.Log("NoOne");
+        // Random offset of attackRange
+        attackRange = Random.Range( attackRange - 1.5f, attackRange );
+
+        // Set the maxHealth on the health bar component
+        healthBar.maxValue = health;
     }
 
 
     // Update is called once per frame
     void Update()
     {
+        // If the unit is not attacking then run toward the enemy flag
         if ( !isAttacking )
             MoveTowardFlag();
 
 
+        // If the unit detects a enemy unit nearby its range
         if ( CheckIfNearbyEnemy() )
         {
+            // Prepare to attack, moving toward the enemy and adjusting the position attack range
             isAttacking = true;
             if (!readyToAttack)
             {
@@ -68,6 +66,7 @@ public class Unit : MonoBehaviour
             isAttacking = false;
         }
 
+        // when the units has the right position and is ready to attack then Hit
         if (readyToAttack)
         {
             if (flag)
@@ -80,15 +79,17 @@ public class Unit : MonoBehaviour
     }
 
 
-    protected virtual void Hit()
+    protected virtual void Hit() // POLYMORPHISM
     {
-        Debug.Log( "Passo Base" );
         readyToAttack = false;
         flag = true;
         isAttacking = false;
     }
 
-    protected virtual void MoveTowardEnemy()
+    /// <summary>
+    /// Move the unit toward the nearest enemy since it reach the attacking range
+    /// </summary>
+    protected void MoveTowardEnemy() //ABSTRACTION
     {
         if ( nearestEnemy != null)
         {
@@ -103,13 +104,14 @@ public class Unit : MonoBehaviour
         
     }
 
-    private void AdjustAttackingPosition()
+    private void AdjustAttackingPosition() //ABSTRACTION
     {
         if ( nearestEnemy != null )
         {
             Ray ray = new Ray(transform.position, (nearestEnemy.transform.position - gameObject.transform.position ).normalized);
             gameObject.transform.LookAt( nearestEnemy.transform.position );
             //Debug.DrawRay( transform.position, ( nearestEnemy.transform.position - gameObject.transform.position ).normalized * 5, Color.green );
+           
             RaycastHit hit;
             if ( Physics.Raycast( ray, out hit, ( attackRange + 0.5f ) ) )
             {
@@ -134,9 +136,11 @@ public class Unit : MonoBehaviour
 
     }
 
-    protected virtual void MoveTowardFlag()
+    /// <summary>
+    /// Depending on Faction, unit move toward the flag to capture
+    /// </summary>
+    protected void MoveTowardFlag() //ABSTRACTION
     {
-        //Debug.Log( "Unit Speed set to: " + speed );
 
         if ( CheckFaction() == 1 )
         {
@@ -150,12 +154,17 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private bool CheckIfNearbyEnemy()
+
+    /// <summary>
+    /// Check the nearest enemy unit and set it to the global variable nearest Enemy
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckIfNearbyEnemy() //ABSTRACTION
     {
-        GameObject o = NearbyEnemy();
+        GameObject o = NearbyEnemy(); //ABSTRACTION
         if ( o != null )
         {
-            Debug.Log( gameObject.tag + " " + gameObject.name + " is near to " + o.name );
+            //Debug.Log( gameObject.tag + " " + gameObject.name + " is near to " + o.name );
             nearestEnemy = o;
             return true;
         }
@@ -163,7 +172,11 @@ public class Unit : MonoBehaviour
         return false;
     }
 
-    private int CheckFaction()
+    /// <summary>
+    /// Check and return the unit faction
+    /// </summary>
+    /// <returns></returns>
+    private int CheckFaction() //ABSTRACTION
     {
         if (gameObject.CompareTag("Enemy"))
         {
@@ -175,7 +188,11 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private GameObject NearbyEnemy()
+    /// <summary>
+    /// Depending on the checkRange field of the unit, search and return the nearest enemy unit
+    /// </summary>
+    /// <returns></returns>
+    private GameObject NearbyEnemy() //ABSTRACTION
     {
         GameObject[] enemies;
         float minDist;
